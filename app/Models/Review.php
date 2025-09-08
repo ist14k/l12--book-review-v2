@@ -15,4 +15,9 @@ class Review extends Model
         'rating',
         'review',
     ];
+
+    public function book()
+    {
+        return $this->belongsTo(Book::class);
+    }
 }
