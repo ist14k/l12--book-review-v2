@@ -17,7 +17,13 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
         Book::factory(50)->create()->each(function ($book) {
-            Review::factory()->count(rand(2, 7))->create(['book_id' => $book->id]);
+            Review::factory()->count(rand(20, 30))->create([
+                'book_id' => $book->id,
+                'created_at' => fake()->dateTimeBetween($book->created_at, 'now'),
+                'updated_at' => function (array $attributes) {
+                    return fake()->dateTimeBetween($attributes['created_at'], 'now');
+                },
+            ]);
         });
 
         User::factory()->create([

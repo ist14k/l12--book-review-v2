@@ -20,6 +20,10 @@ class BookFactory extends Factory
             'title' => $this->faker->sentence,
             'author' => $this->faker->name,
             'description' => $this->faker->paragraph,
+            'created_at' => $this->faker->dateTimeBetween('-2 years'),
+            'updated_at' => function (array $attributes) {
+                return $this->faker->dateTimeBetween($attributes['created_at'], 'now');
+            },
         ];
     }
 }
