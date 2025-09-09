@@ -10,9 +10,16 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $title = $request->input('title');
+
+        $books = Book::when(
+            $title,
+            fn($query, $title) => $query->title($title)
+        )->get();
+
+        return view('books.index', compact('books'));
     }
 
     /**
