@@ -28,7 +28,12 @@ class BookController extends Controller
             default => $books->latest()->withReviewsCount()->withAverageRating(),
         };
 
-        $books = $books->get();
+        $cacheKey = 'books_index_' . md5($books->toSql() . serialize($books->getBindings()));
+        $books = cache()->remember(
+            $cacheKey,
+            now()->addMinutes(10),
+            fn() => $books->get()
+        );
 
         return view('books.index', compact('books'));
     }
@@ -55,6 +60,13 @@ class BookController extends Controller
     public function show(string $id)
     {
         $book = Book::withReviewsCount()->withAverageRating()->findOrFail($id);
+
+        $cacheKey = 'book_show_' . $book->id . '_' . md5($book->toSql() . serialize($book->getBindings()));
+        $book = cache()->remember(
+            $cacheKey,
+            now()->addMinutes(10),
+            fn() => $book
+        );
 
         return view('books.show', [
             'book' => $book->load(['reviews' => fn($query) => $query->latest()])
