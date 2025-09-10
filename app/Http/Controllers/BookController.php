@@ -52,9 +52,13 @@ class BookController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Book $book)
+    public function show(string $id)
     {
-        //
+        $book = Book::withReviewsCount()->withAverageRating()->findOrFail($id);
+
+        return view('books.show', [
+            'book' => $book->load(['reviews' => fn($query) => $query->latest()])
+        ]);
     }
 
     /**
