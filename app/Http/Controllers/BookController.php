@@ -59,18 +59,14 @@ class BookController extends Controller
      */
     public function show(string $id)
     {
-        $book = Book::withReviewsCount()->withAverageRating()->findOrFail($id);
-
-        $cacheKey = 'book_show_' . $book->id . '_' . md5($book->toSql() . serialize($book->getBindings()));
+        $cacheKey = 'book_show_' . $id;
         $book = cache()->remember(
             $cacheKey,
             now()->addMinutes(10),
-            fn() => $book
+            fn() => Book::with(['reviews' => fn($query) => $query->latest()])->withAverageRating()->withReviewsCount()->findOrFail($id)
         );
 
-        return view('books.show', [
-            'book' => $book->load(['reviews' => fn($query) => $query->latest()])
-        ]);
+        return view('books.show', compact('book'));
     }
 
     /**
