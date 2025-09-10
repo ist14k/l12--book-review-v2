@@ -23,6 +23,20 @@ class Book extends Model
     }
 
     // query scopes
+    public function scopeWithReviewsCount(Builder $query, $from = null, $to = null)
+    {
+        return $query->withCount([
+            'reviews' => fn(Builder $query) => $this->rangeBuilder($query, 'created_at', $from, $to)
+        ]);
+    }
+
+    public function scopeWithAverageRating(Builder $query, $from = null, $to = null)
+    {
+        return $query->withAvg([
+            'reviews' => fn(Builder $query) => $this->rangeBuilder($query, 'created_at', $from, $to)
+        ], 'rating');
+    }
+
     public function scopeTitle(Builder $query, string $title)
     {
         return $query->where('title', 'like', '%' . $title . '%');
@@ -30,21 +44,17 @@ class Book extends Model
 
     public function scopePopular(Builder $query, $from = null, $to = null)
     {
-        return $query->withCount([
-            'reviews' => fn(Builder $query) => $this->rangeBuilder($query, 'created_at', $from, $to)
-        ])->orderBy('reviews_count', 'desc');
+        return $query->withReviewsCount($from, $to)->orderBy('reviews_count', 'desc');
     }
 
     public function scopeHighestRated(Builder $query, $from = null, $to = null)
     {
-        return $query->withAvg([
-            'reviews' => fn(Builder $query) => $this->rangeBuilder($query, 'created_at', $from, $to)
-        ], 'rating')->orderBy('reviews_avg_rating', 'desc');
+        return $query->withAverageRating($from, $to)->orderBy('reviews_avg_rating', 'desc');
     }
 
-    public function scopeMinReviews(Builder $query, int $count = 1)
+    public function scopeMinReviews(Builder $query, int $count)
     {
-        return $query->where('reviews_count', '>=', $count);
+        return $query->having('reviews_count', '>=', $count);
     }
 
     private function rangeBuilder(Builder $query, $column, $from = null, $to = null)
@@ -58,5 +68,33 @@ class Book extends Model
         if ($from && $to) {
             $query->whereBetween($column, [$from, $to]);
         }
+    }
+
+    public function scopePopularLastMonth(Builder $query): Builder
+    {
+        return $query->popular(now()->subMonth(), now())
+            ->highestRated(now()->subMonth(), now())
+            ->minReviews(2);
+    }
+
+    public function scopePopularLast6Months(Builder $query): Builder
+    {
+        return $query->popular(now()->subMonths(6), now())
+            ->highestRated(now()->subMonths(6), now())
+            ->minReviews(5);
+    }
+
+    public function scopeHighestRatedLastMonth(Builder $query): Builder
+    {
+        return $query->highestRated(now()->subMonth(), now())
+            ->popular(now()->subMonth(), now())
+            ->minReviews(2);
+    }
+
+    public function scopeHighestRatedLast6Months(Builder $query): Builder
+    {
+        return $query->highestRated(now()->subMonths(6), now())
+            ->popular(now()->subMonths(6), now())
+            ->minReviews(5);
     }
 }
