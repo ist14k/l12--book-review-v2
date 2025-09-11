@@ -28,7 +28,7 @@ class BookController extends Controller
             default => $books->latest()->withReviewsCount()->withAverageRating(),
         };
 
-        $cacheKey = 'books_index_' . md5($books->toSql() . serialize($books->getBindings()));
+        $cacheKey = 'books_index_' . md5($filter . '|' . ($title ?? '') . '|' . request('page', 1));
         $books = cache()->remember(
             $cacheKey,
             now()->addMinutes(10),
