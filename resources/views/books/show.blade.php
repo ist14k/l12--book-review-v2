@@ -11,7 +11,7 @@
       </div>
       <div class="book-rating flex items-center">
         <div class="mr-2 text-sm font-medium text-slate-700">
-          {{ number_format($book->reviews_avg_rating, 1) }}
+          {{ number_format($book->reviews_avg_rating, 1) }} <x-rating-star :rating="$book->reviews_avg_rating" />
         </div>
         <span class="book-review-count text-sm text-gray-500">
           {{ $book->reviews_count }} {{ Str::plural('review', $book->reviews_count) }}
