@@ -23,6 +23,19 @@ class Book extends Model
     }
 
     // query scopes
+    private function rangeBuilder(Builder $query, $column, $from = null, $to = null)
+    {
+        if ($from && !$to) {
+            $query->where($column, '>=', $from);
+        }
+        if (!$from && $to) {
+            $query->where($column, '<=', $to);
+        }
+        if ($from && $to) {
+            $query->whereBetween($column, [$from, $to]);
+        }
+    }
+
     public function scopeWithReviewsCount(Builder $query, $from = null, $to = null)
     {
         return $query->withCount([
@@ -47,27 +60,14 @@ class Book extends Model
         return $query->withReviewsCount($from, $to)->orderBy('reviews_count', 'desc');
     }
 
-    public function scopeHighestRated(Builder $query, $from = null, $to = null)
-    {
-        return $query->withAverageRating($from, $to)->orderBy('reviews_avg_rating', 'desc');
-    }
-
     public function scopeMinReviews(Builder $query, int $count)
     {
         return $query->having('reviews_count', '>=', $count);
     }
 
-    private function rangeBuilder(Builder $query, $column, $from = null, $to = null)
+    public function scopeHighestRated(Builder $query, $from = null, $to = null)
     {
-        if ($from && !$to) {
-            $query->where($column, '>=', $from);
-        }
-        if (!$from && $to) {
-            $query->where($column, '<=', $to);
-        }
-        if ($from && $to) {
-            $query->whereBetween($column, [$from, $to]);
-        }
+        return $query->withAverageRating($from, $to)->orderBy('reviews_avg_rating', 'desc');
     }
 
     public function scopePopularLastMonth(Builder $query): Builder
