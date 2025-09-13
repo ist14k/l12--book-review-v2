@@ -100,12 +100,21 @@ class Book extends Model
 
     protected static function booted()
     {
-        static::updated(function (Book $book) {
+        $clearCache = function (Book $book) {
+            // Clear the specific book show cache
             cache()->forget('book_show_' . $book->id);
-        });
 
-        static::deleted(function (Book $book) {
-            cache()->forget('book_show_' . $book->id);
-        });
+            // Clear books index cache - use tags if supported, otherwise version bump
+            if (cache()->getStore() instanceof \Illuminate\Cache\TaggableStore) {
+                cache()->tags('books_index')->flush();
+            } else {
+                // For non-taggable stores (database/file), increment version counter
+                cache()->increment('books_index_version');
+            }
+        };
+
+        static::created($clearCache);
+        static::updated($clearCache);
+        static::deleted($clearCache);
     }
 }
