@@ -23,12 +23,19 @@ class Review extends Model
 
     protected static function booted()
     {
-        static::updated(function (Review $review) {
+        $clearCache = function (Review $review) {
             cache()->forget('book_show_' . $review->book_id);
-        });
 
-        static::deleted(function (Review $review) {
-            cache()->forget('book_show_' . $review->book_id);
-        });
+            // Clear books index cache as well
+            if (cache()->getStore() instanceof \Illuminate\Cache\TaggableStore) {
+                cache()->tags('books_index')->flush();
+            } else {
+                cache()->increment('books_index_version');
+            }
+        };
+
+        static::created($clearCache);
+        static::updated($clearCache);
+        static::deleted($clearCache);
     }
 }

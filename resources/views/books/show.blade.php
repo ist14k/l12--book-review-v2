@@ -21,7 +21,10 @@
   </div>
 
   <div>
-    <h2 class="mb-4 text-xl font-semibold">Reviews</h2>
+    <div class="mb-4 flex items-center justify-between">
+      <h2 class="text-xl font-semibold">Reviews</h2>
+      <a href="{{ route('books.reviews.create', $book) }}" class="btn">Add Review</a>
+    </div>
     <ul>
       @forelse ($book->reviews as $review)
         <li class="book-item mb-4">
